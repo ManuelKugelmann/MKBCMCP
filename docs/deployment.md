@@ -1,4 +1,4 @@
-# Deployment — Uberspace
+# Deployment -- Uberspace
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ cp .env.example .env
 #   MCP_DATA_DIR=/home/manu/mcp-data
 #   JWT_SECRET=$(openssl rand -hex 32)
 
-# Web backend (proxy 443 → node port)
+# Web backend (proxy 443 -> node port)
 uberspace web backend set / --http --port 62100
 
 # Supervisord service
@@ -62,11 +62,11 @@ curl https://manu.uber.space/.well-known/oauth-authorization-server
 
 ## Add to claude.ai
 
-1. Settings → Connectors → Add custom connector
+1. Settings -> Connectors -> Add custom connector
 2. URL: `https://manu.uber.space/mcp`
 3. Leave OAuth Client ID/Secret empty (DCR handles it)
 4. Authenticate with GitHub when prompted
-5. Start new conversation → tools should be available
+5. Start new conversation -> tools should be available
 
 ## Update
 

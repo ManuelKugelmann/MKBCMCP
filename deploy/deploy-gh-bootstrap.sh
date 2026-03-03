@@ -1,15 +1,15 @@
 #!/bin/bash
-# deploy-uberspace.sh — Run on your Uberspace via SSH
-# Usage: ssh you@yourhost.uberspace.de < deploy-uberspace.sh
+# deploy-gh-bootstrap.sh -- Run on your Uberspace via SSH
+# Usage: ssh you@yourhost.uberspace.de < deploy-gh-bootstrap.sh
 set -euo pipefail
 
-echo "▸ Creating directory"
+echo "Creating directory"
 mkdir -p ~/gh-bootstrap
 
-echo "▸ Writing server"
+echo "Writing server"
 # (scp gh-bootstrap.js to ~/gh-bootstrap/ first, or paste inline)
 
-echo "▸ Writing supervisord config"
+echo "Writing supervisord config"
 cat > ~/etc/services.d/gh-bootstrap.ini << 'EOF'
 [program:gh-bootstrap]
 directory=%(ENV_HOME)s/gh-bootstrap
@@ -25,16 +25,16 @@ environment=
 startsecs=5
 EOF
 
-echo "▸ Registering web backend"
+echo "Registering web backend"
 uberspace web backend set /gh --http --port 9876
 
-echo "▸ Starting service"
+echo "Starting service"
 supervisorctl reread
 supervisorctl update
 supervisorctl start gh-bootstrap
 
-echo "▸ Testing"
+echo "Testing"
 sleep 2
 curl -s https://$(hostname)/gh/status
 echo ""
-echo "✓ Done. API at https://$(hostname)/gh/bootstrap"
+echo "Done. API at https://$(hostname)/gh/bootstrap"

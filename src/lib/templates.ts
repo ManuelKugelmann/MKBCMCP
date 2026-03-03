@@ -43,7 +43,7 @@ export function renderClaudeMd(args: BootstrapArgs, owner: string): string {
     "## Development Notes",
     "",
     `- Created: ${new Date().toISOString().split("T")[0]}`,
-    "- Origin: claude.ai chat → Claude Code handoff",
+    "- Origin: claude.ai chat -> Claude Code handoff",
     `- Owner: ${owner}`
   );
 

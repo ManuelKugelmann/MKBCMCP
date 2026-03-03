@@ -1,4 +1,4 @@
-# GitHub MCP — Official vs mkbc-mcp
+# GitHub MCP -- Official vs mkbc-mcp
 
 ## Official GitHub MCP Connector
 
@@ -36,7 +36,7 @@
 - Specific tools: `X-MCP-Tools: get_file_contents,issue_read`
 - Lockdown mode: sanitizes prompt injection from public repos
 
-## mkbc-mcp (This Server) — Covers the Gaps
+## mkbc-mcp (This Server) -- Covers the Gaps
 
 | Tool | Why Not In Official |
 |------|---------------------|

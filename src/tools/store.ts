@@ -31,7 +31,7 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
       const fullPath = safePath(args.project, args.path);
       await mkdir(join(fullPath, ".."), { recursive: true });
       await writeFile(fullPath, args.content, "utf-8");
-      return `✅ Written ${args.project}/${args.path} (${Buffer.byteLength(args.content)} bytes)`;
+      return `Written ${args.project}/${args.path} (${Buffer.byteLength(args.content)} bytes)`;
     },
   });
 
@@ -59,8 +59,8 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
     execute: async (args) => {
       const dir = safePath(args.project, args.path || "");
       const entries = await listTree(dir, dir);
-      if (entries.length === 0) return `📁 ${args.project}/${args.path || ""} is empty`;
-      return entries.map((e) => `${e.type === "dir" ? "📁" : "📄"} ${e.path} ${e.size ? `(${e.size}B)` : ""}`).join("\n");
+      if (entries.length === 0) return `${args.project}/${args.path || ""} is empty`;
+      return entries.map((e) => `${e.type === "dir" ? "dir" : "file"} ${e.path} ${e.size ? `(${e.size}B)` : ""}`).join("\n");
     },
   });
 
@@ -74,7 +74,7 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
     execute: async (args) => {
       const fullPath = safePath(args.project, args.path);
       await rm(fullPath);
-      return `🗑️ Deleted ${args.project}/${args.path}`;
+      return `Deleted ${args.project}/${args.path}`;
     },
   });
 

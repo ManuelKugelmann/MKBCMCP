@@ -1,0 +1,27 @@
+# CLAUDE.md Template Reference
+
+This is the template used by `gh_project_bootstrap` to generate CLAUDE.md files.
+The actual rendering is done in `src/lib/templates.ts`.
+
+## Sections
+
+### Required
+- **Project Context** -- Summary of chat conversation, background, decisions made
+- **Tech Stack** -- Bullet list of technologies
+- **Goals** -- Numbered list, becomes Claude Code's immediate TODO
+
+### Optional
+- **Constraints** -- Known constraints, non-goals, dead ends
+- **Decisions** -- Architectural decisions (empty initially, populated via `gh_project_add_context`)
+- **References** -- Links, papers, docs discussed in chat
+
+### Auto-generated
+- **Development Notes** -- Created date, origin, owner
+
+## Design Principles
+
+1. **Claude Code reads CLAUDE.md first** -- it's the primary context source
+2. **Goals are actionable** -- numbered list that Claude Code can execute top-to-bottom
+3. **Constraints prevent re-exploration** -- dead ends from chat don't get revisited
+4. **Context is narrative** -- written by Claude (in chat) summarizing the conversation naturally
+5. **Sections are appendable** -- `gh_project_add_context` can add to any section post-bootstrap
