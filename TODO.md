@@ -2,9 +2,10 @@
 
 ## High Priority
 
-- [ ] Implement upstream token extraction from FastMCP session (`src/tools/grep.ts:getUpstreamToken`, `src/lib/octokit.ts`)
+- [x] Implement upstream token extraction from FastMCP session (uses `getAuthSession()`)
 - [x] Install dependencies and verify TypeScript compilation
 - [x] Add `.env.example` with all required environment variables
+- [x] GitHub Actions CI
 - [ ] Test MCP server startup locally
 
 ## Bootstrap Tool
@@ -40,4 +41,3 @@
 
 - [ ] Add unit tests for templates.ts renderers
 - [ ] Add integration tests for store tools (path traversal, edge cases)
-- [ ] Replace `any` types in session handling with proper McpSession type

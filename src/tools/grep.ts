@@ -1,6 +1,5 @@
-import { FastMCP } from "fastmcp";
+import { FastMCP, getAuthSession, requireAuth } from "fastmcp";
 import { z } from "zod";
-import { createOctokit } from "../lib/octokit.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { stat, mkdir } from "node:fs/promises";
@@ -27,13 +26,14 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
       context_lines: z.number().int().min(0).max(10).optional().default(2),
       max_results: z.number().int().min(1).max(200).optional().default(50),
     }),
+    canAccess: requireAuth,
     execute: async (args, { session }) => {
-      const octokit = createOctokit(session);
+      const { accessToken } = getAuthSession(session);
       const [owner, repo] = args.repo.split("/");
       const repoDir = join(clonesDir, owner, repo);
 
       // Ensure clone exists and is fresh
-      await ensureClone(repoDir, owner, repo, args.ref, session);
+      await ensureClone(repoDir, owner, repo, args.ref, accessToken);
 
       // Run git grep
       const grepArgs = [
@@ -73,16 +73,14 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
     owner: string,
     repo: string,
     ref: string | undefined,
-    session: any
+    token: string
   ) {
     let needsClone = false;
 
     try {
       const st = await stat(join(repoDir, ".git"));
-      // Check freshness
       const age = Date.now() - st.mtimeMs;
       if (age > CLONE_TTL_MS) {
-        // Pull to refresh
         await exec("git", ["fetch", "--depth=1", "origin"], {
           cwd: repoDir,
           timeout: 60_000,
@@ -99,7 +97,6 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
 
     if (needsClone) {
       await mkdir(repoDir, { recursive: true });
-      const token = getUpstreamToken(session);
       const cloneUrl = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
 
       const cloneArgs = ["clone", "--depth=1", "--single-branch"];
@@ -108,12 +105,5 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
 
       await exec("git", cloneArgs, { timeout: 120_000 });
     }
-  }
-
-  function getUpstreamToken(session: any): string {
-    // TODO: Extract upstream GH token from FastMCP session
-    // This depends on FastMCP's token swap implementation
-    // The OAuthProxy stores upstream tokens and provides access via session
-    throw new Error("TODO: implement upstream token extraction from session");
   }
 }

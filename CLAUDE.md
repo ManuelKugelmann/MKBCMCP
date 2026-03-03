@@ -26,7 +26,6 @@ The hybrid strategy (ADR-001) means this server only implements tools the offici
 ```
 src/
   server.ts              # FastMCP server entry point
-  types.ts               # McpSession, Config interfaces
   lib/
     octokit.ts           # Session-scoped Octokit factory
     templates.ts         # CLAUDE.md, README, .gitignore renderers
@@ -53,7 +52,7 @@ npm run build
 node dist/server.js
 ```
 
-Required env vars: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `BASE_URL`, `JWT_SECRET`
+Required env vars: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `BASE_URL`
 Optional: `PORT` (default 62100), `MCP_DATA_DIR` (default ./mcp-data)
 
 ## Constraints

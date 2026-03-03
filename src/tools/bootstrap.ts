@@ -1,10 +1,7 @@
-import { FastMCP } from "fastmcp";
+import { FastMCP, requireAuth } from "fastmcp";
 import { z } from "zod";
 import { createOctokit } from "../lib/octokit.js";
 import { renderClaudeMd, renderReadme, renderGitignore, renderDecisions } from "../lib/templates.js";
-
-// TODO: Implement bootstrap tools
-// See docs/tools.md for the full design specification.
 
 export function registerBootstrapTools(server: FastMCP) {
   server.addTool({
@@ -25,6 +22,7 @@ export function registerBootstrapTools(server: FastMCP) {
       private: z.boolean().optional().default(true),
       topics: z.array(z.string()).optional(),
     }),
+    canAccess: requireAuth,
     execute: async (args, { session }) => {
       const octokit = createOctokit(session);
       const user = await octokit.rest.users.getAuthenticated();
@@ -119,6 +117,7 @@ export function registerBootstrapTools(server: FastMCP) {
       section: z.enum(["goals", "constraints", "decisions", "context", "references"]),
       content: z.string().describe("Markdown content to append"),
     }),
+    canAccess: requireAuth,
     execute: async (args, { session }) => {
       const octokit = createOctokit(session);
       const [owner, repo] = args.repo.split("/");
