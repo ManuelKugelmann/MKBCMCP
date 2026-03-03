@@ -23,19 +23,6 @@
 
 - [ ] Add max file size limit to `store_write`
 - [ ] Add total storage quota per project
-- [ ] Consider adding `store_exists` tool
-
-## Standalone gh-bootstrap.js
-
-- [ ] Integrate ntfy notifications on successful bootstrap
-- [ ] Add CORS origin whitelist (currently allows any origin)
-- [ ] Add request logging to file
-
-## UI (bootstrap.jsx)
-
-- [ ] Decide on hosting approach (static site? embedded in MCP server?)
-- [ ] Add loading states and error recovery
-- [ ] Support selecting .gitignore template
 
 ## Deployment
 
@@ -48,11 +35,9 @@
 
 - [ ] Add API examples to docs/tools.md
 - [ ] Document OAuth flow and token lifecycle
-- [ ] Add architecture diagram
 
 ## Code Quality
 
-- [ ] Add ESLint configuration
 - [ ] Add unit tests for templates.ts renderers
 - [ ] Add integration tests for store tools (path traversal, edge cases)
 - [ ] Replace `any` types in session handling with proper McpSession type

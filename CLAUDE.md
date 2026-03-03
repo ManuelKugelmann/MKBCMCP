@@ -34,15 +34,9 @@ src/
     bootstrap.ts         # gh_project_bootstrap, gh_project_add_context
     grep.ts              # gh_grep (shallow clone + git grep)
     store.ts             # store_write, store_read, store_list, store_delete
-standalone/
-  gh-bootstrap.js        # Zero-dep Node.js API (alternative to MCP bootstrap)
-ui/
-  bootstrap.jsx          # React UI for browser-based bootstrapping
 deploy/
   supervisord.ini        # Process manager config
-  setup.sh               # Quick Uberspace setup
-  deploy-gh-bootstrap.sh # Standalone gh-bootstrap deploy
-  setup-full.sh          # Full setup with ntfy notifications
+  setup.sh               # Uberspace setup script
 docs/
   tools.md               # Tool design specifications
   decisions.md           # Architecture Decision Records
