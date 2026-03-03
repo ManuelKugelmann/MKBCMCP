@@ -3,8 +3,8 @@
 ## High Priority
 
 - [ ] Implement upstream token extraction from FastMCP session (`src/tools/grep.ts:getUpstreamToken`, `src/lib/octokit.ts`)
-- [ ] Install dependencies and verify TypeScript compilation
-- [ ] Add `.env.example` with all required environment variables
+- [x] Install dependencies and verify TypeScript compilation
+- [x] Add `.env.example` with all required environment variables
 - [ ] Test MCP server startup locally
 
 ## Bootstrap Tool

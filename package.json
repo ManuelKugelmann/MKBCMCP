@@ -10,7 +10,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "fastmcp": "^0.1.0",
+    "fastmcp": "^3.33.0",
     "octokit": "^4.0.0",
     "zod": "^3.23.0"
   },
