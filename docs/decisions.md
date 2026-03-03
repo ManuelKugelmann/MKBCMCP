@@ -39,7 +39,7 @@
 
 ## ADR-004: Atomic Multi-File Commits via Git Data API
 
-**Decision:** Use Git Data API (blobs → tree → commit → ref update) for bootstrap, not sequential Contents API calls.
+**Decision:** Use Git Data API (blobs -> tree -> commit -> ref update) for bootstrap, not sequential Contents API calls.
 
 **Context:** Contents API creates one commit per file. Bootstrapping 5 files = 5 commits. Git Data API creates one atomic commit with all files.
 
@@ -71,4 +71,4 @@
 - Decisions (architectural choices)
 - References (links, papers)
 
-**Consequence:** Seamless chat → code transition. Claude Code knows what was discussed, what was decided, and what to do next.
+**Consequence:** Seamless chat -> code transition. Claude Code knows what was discussed, what was decided, and what to do next.

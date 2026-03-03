@@ -1,119 +1,75 @@
-import { FastMCP } from "fastmcp";
-import { z } from "zod";
-import { createOctokit } from "../lib/octokit.js";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { stat, mkdir } from "node:fs/promises";
-import { join } from "node:path";
+# mkbc-mcp
 
-const exec = promisify(execFile);
+> Custom MCP server extending the official GitHub MCP with tools for project bootstrapping, regex grep, and local file storage. Bridges claude.ai chat conversations to Claude Code via structured CLAUDE.md handoff.
 
-const CLONE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+## Project Context
 
-export function registerGrepTool(server: FastMCP, dataDir: string) {
-  const clonesDir = join(dataDir, "clones");
+This is a personal MCP (Model Context Protocol) server designed to fill gaps in the official GitHub MCP Connector. It runs on Uberspace shared hosting and provides:
 
-  server.addTool({
-    name: "gh_grep",
-    description:
-      "Regex grep across a GitHub repo using local shallow clone cache. " +
-      "Supports PCRE regex, context lines, and path filters. " +
-      "Much faster and more powerful than GitHub Search API.",
-    parameters: z.object({
-      repo: z.string().describe("owner/name"),
-      pattern: z.string().describe("Regex pattern (PCRE)"),
-      path_filter: z.string().optional().describe('Glob filter, e.g. "**/*.ts"'),
-      ref: z.string().optional().describe("Branch/tag/SHA"),
-      context_lines: z.number().int().min(0).max(10).optional().default(2),
-      max_results: z.number().int().min(1).max(200).optional().default(50),
-    }),
-    execute: async (args, { session }) => {
-      const octokit = createOctokit(session);
-      const [owner, repo] = args.repo.split("/");
-      const repoDir = join(clonesDir, owner, repo);
+1. **Project Bootstrap** -- Create GitHub repos with structured CLAUDE.md from chat context
+2. **Regex Grep** -- PCRE grep across repos via shallow clone cache (GitHub Search API has no regex)
+3. **Local Store** -- Filesystem read/write for project artifacts on the server
 
-      // Ensure clone exists and is fresh
-      await ensureClone(repoDir, owner, repo, args.ref, session);
+The hybrid strategy (ADR-001) means this server only implements tools the official GitHub MCP doesn't provide.
 
-      // Run git grep
-      const grepArgs = [
-        "grep",
-        "-n", // line numbers
-        "-P", // PCRE regex
-        `--context=${args.context_lines}`,
-        `--max-count=${args.max_results}`,
-        "--color=never",
-        args.pattern,
-      ];
+## Tech Stack
 
-      if (args.path_filter) {
-        grepArgs.push("--", args.path_filter);
-      }
+- TypeScript + Node.js 20+
+- FastMCP (MCP server framework with OAuth proxy)
+- Octokit (GitHub API client)
+- Zod (parameter validation)
+- Uberspace (deployment target)
+- supervisord (process management)
 
-      try {
-        const { stdout } = await exec("git", grepArgs, {
-          cwd: repoDir,
-          maxBuffer: 10 * 1024 * 1024, // 10MB
-          timeout: 30_000,
-        });
+## Project Structure
 
-        const lines = stdout.split("\n").filter(Boolean);
-        return `🔍 ${lines.length} matches for /${args.pattern}/ in ${args.repo}\n\n${stdout}`;
-      } catch (err: any) {
-        if (err.code === 1) {
-          return `🔍 No matches for /${args.pattern}/ in ${args.repo}`;
-        }
-        throw err;
-      }
-    },
-  });
+```
+src/
+  server.ts              # FastMCP server entry point
+  types.ts               # McpSession, Config interfaces
+  lib/
+    octokit.ts           # Session-scoped Octokit factory
+    templates.ts         # CLAUDE.md, README, .gitignore renderers
+  tools/
+    bootstrap.ts         # gh_project_bootstrap, gh_project_add_context
+    grep.ts              # gh_grep (shallow clone + git grep)
+    store.ts             # store_write, store_read, store_list, store_delete
+deploy/
+  supervisord.ini        # Process manager config
+  setup.sh               # Uberspace setup script
+docs/
+  tools.md               # Tool design specifications
+  decisions.md           # Architecture Decision Records
+  deployment.md          # Uberspace deployment guide
+  github-mcp-comparison.md  # Official vs custom MCP comparison
+  claude-md-template.md  # CLAUDE.md section reference
+```
 
-  async function ensureClone(
-    repoDir: string,
-    owner: string,
-    repo: string,
-    ref: string | undefined,
-    session: any
-  ) {
-    let needsClone = false;
+## Build & Run
 
-    try {
-      const st = await stat(join(repoDir, ".git"));
-      // Check freshness
-      const age = Date.now() - st.mtimeMs;
-      if (age > CLONE_TTL_MS) {
-        // Pull to refresh
-        await exec("git", ["fetch", "--depth=1", "origin"], {
-          cwd: repoDir,
-          timeout: 60_000,
-        });
-        if (ref) {
-          await exec("git", ["checkout", ref], { cwd: repoDir });
-        } else {
-          await exec("git", ["reset", "--hard", "origin/HEAD"], { cwd: repoDir });
-        }
-      }
-    } catch {
-      needsClone = true;
-    }
+```bash
+npm install
+npm run build
+node dist/server.js
+```
 
-    if (needsClone) {
-      await mkdir(repoDir, { recursive: true });
-      const token = getUpstreamToken(session);
-      const cloneUrl = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
+Required env vars: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `BASE_URL`, `JWT_SECRET`
+Optional: `PORT` (default 62100), `MCP_DATA_DIR` (default ./mcp-data)
 
-      const cloneArgs = ["clone", "--depth=1", "--single-branch"];
-      if (ref) cloneArgs.push("--branch", ref);
-      cloneArgs.push(cloneUrl, repoDir);
+## Constraints
 
-      await exec("git", cloneArgs, { timeout: 120_000 });
-    }
-  }
+- No database -- flat files only (ADR-005)
+- Single-user personal server
+- Official GitHub MCP handles standard repo/issue/PR operations
+- OAuth uses GitHub provider only, not generic (ADR-002)
 
-  function getUpstreamToken(session: any): string {
-    // TODO: Extract upstream GH token from FastMCP session
-    // This depends on FastMCP's token swap implementation
-    // The OAuthProxy stores upstream tokens and provides access via session
-    throw new Error("TODO: implement upstream token extraction from session");
-  }
-}
+## Decisions
+
+See [docs/decisions.md](docs/decisions.md) for full ADRs.
+
+## References
+
+- FastMCP: https://gofastmcp.com
+- MCP spec: https://modelcontextprotocol.io
+- GitHub MCP: https://api.githubcopilot.com/mcp/
+- Uberspace: https://uberspace.de

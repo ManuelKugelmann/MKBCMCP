@@ -39,4 +39,4 @@ await server.start({
   httpStream: { port: PORT },
 });
 
-console.log(`🟢 mkbc-mcp listening on ${BASE_URL}/mcp`);
+console.log(`mkbc-mcp listening on ${BASE_URL}/mcp`);
