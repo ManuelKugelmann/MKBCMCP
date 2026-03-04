@@ -1,6 +1,5 @@
-import { FastMCP } from "fastmcp";
+import { FastMCP, requireAuth, getAuthSession } from "fastmcp";
 import { z } from "zod";
-import { createOctokit } from "../lib/octokit.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { stat, mkdir } from "node:fs/promises";
@@ -15,6 +14,7 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
 
   server.addTool({
     name: "gh_grep",
+    canAccess: requireAuth,
     description:
       "Regex grep across a GitHub repo using local shallow clone cache. " +
       "Supports PCRE regex, context lines, and path filters. " +
@@ -28,7 +28,6 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
       max_results: z.number().int().min(1).max(200).optional().default(50),
     }),
     execute: async (args, { session }) => {
-      const octokit = createOctokit(session);
       const [owner, repo] = args.repo.split("/");
       const repoDir = join(clonesDir, owner, repo);
 
@@ -73,7 +72,7 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
     owner: string,
     repo: string,
     ref: string | undefined,
-    session: any
+    session: Record<string, unknown> | undefined
   ) {
     let needsClone = false;
 
@@ -99,8 +98,8 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
 
     if (needsClone) {
       await mkdir(repoDir, { recursive: true });
-      const token = getUpstreamToken(session);
-      const cloneUrl = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
+      const { accessToken } = getAuthSession(session);
+      const cloneUrl = `https://x-access-token:${accessToken}@github.com/${owner}/${repo}.git`;
 
       const cloneArgs = ["clone", "--depth=1", "--single-branch"];
       if (ref) cloneArgs.push("--branch", ref);
@@ -108,12 +107,5 @@ export function registerGrepTool(server: FastMCP, dataDir: string) {
 
       await exec("git", cloneArgs, { timeout: 120_000 });
     }
-  }
-
-  function getUpstreamToken(session: any): string {
-    // TODO: Extract upstream GH token from FastMCP session
-    // This depends on FastMCP's token swap implementation
-    // The OAuthProxy stores upstream tokens and provides access via session
-    throw new Error("TODO: implement upstream token extraction from session");
   }
 }
