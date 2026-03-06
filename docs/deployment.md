@@ -1,14 +1,24 @@
-# Deployment -- Uberspace
+# Deployment — Uberspace
 
 ## Prerequisites
 
 - Uberspace account (e.g. `manu.uber.space`)
 - GitHub OAuth App registered at https://github.com/settings/developers
-  - Callback URL: `https://manu.uber.space/oauth/callback`
-  - Scopes: `repo`, `read:user`
+  - Callback URL: `https://manu.uber.space/auth/callback`
+  - No special scopes needed in the app config (server requests `repo` at runtime)
 - Node.js 20+ (`uberspace tools version use node 20`)
 
-## One-Time Setup
+## One-Line Install
+
+```bash
+ssh manu@manu.uber.space
+curl -fsSL https://raw.githubusercontent.com/ManuelKugelmann/MKBCMCP/main/install.sh | bash
+```
+
+The script handles everything: clone, build, data dirs, `.env` creation, supervisord,
+and web backend routing. It prompts for GitHub OAuth credentials interactively.
+
+## Manual Setup
 
 ```bash
 ssh manu@manu.uber.space
@@ -18,23 +28,23 @@ uberspace tools version use node 20
 
 # Clone repo
 cd ~
-git clone https://github.com/ManuelKugelmann/mkbc-mcp.git
+git clone https://github.com/ManuelKugelmann/MKBCMCP.git mkbc-mcp
 cd mkbc-mcp
 npm install
 npm run build
 
 # Create data directories
 mkdir -p ~/mcp-data/{oauth,clones,store}
+mkdir -p ~/logs
 
 # Environment
 cp .env.example .env
-# Edit with:
+# Edit .env:
 #   GITHUB_CLIENT_ID=...
 #   GITHUB_CLIENT_SECRET=...
 #   BASE_URL=https://manu.uber.space
 #   PORT=62100
 #   MCP_DATA_DIR=/home/manu/mcp-data
-#   JWT_SECRET=$(openssl rand -hex 32)
 
 # Web backend (proxy 443 -> node port)
 uberspace web backend set / --http --port 62100
@@ -52,21 +62,20 @@ supervisorctl start mkbc-mcp
 # Check process
 supervisorctl status mkbc-mcp
 
-# Check endpoint
-curl -I https://manu.uber.space/mcp
-# Should return 401 or OAuth discovery headers
+# Check endpoint (should return 401 or 405)
+curl -s -o /dev/null -w "%{http_code}" https://manu.uber.space/mcp
 
 # Check OAuth discovery
-curl https://manu.uber.space/.well-known/oauth-authorization-server
+curl -s https://manu.uber.space/.well-known/oauth-protected-resource
 ```
 
-## Add to claude.ai
+## Add to Claude.ai
 
-1. Settings -> Connectors -> Add custom connector
+1. Settings → Connectors → **Add custom connector**
 2. URL: `https://manu.uber.space/mcp`
-3. Leave OAuth Client ID/Secret empty (DCR handles it)
+3. Leave OAuth Client ID/Secret empty (DCR handles registration automatically)
 4. Authenticate with GitHub when prompted
-5. Start new conversation -> tools should be available
+5. Start new conversation — tools should be available
 
 ## Update
 
@@ -82,9 +91,6 @@ supervisorctl restart mkbc-mcp
 ## Logs
 
 ```bash
-# Supervisord logs
-tail -f ~/logs/mkbc-mcp.log
-
-# Or if using console output:
-supervisorctl tail -f mkbc-mcp
+tail -f ~/logs/mkbc-mcp.out.log
+tail -f ~/logs/mkbc-mcp.err.log
 ```
