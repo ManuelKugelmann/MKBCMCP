@@ -13,7 +13,7 @@ const auth = new GitHubProvider({
   baseUrl: BASE_URL,
   clientId: process.env.GITHUB_CLIENT_ID!,
   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-  scopes: ["repo", "read:user"],
+  scopes: ["repo"],
   tokenStorage: new DiskStore({
     directory: `${DATA_DIR}/oauth`,
   }),

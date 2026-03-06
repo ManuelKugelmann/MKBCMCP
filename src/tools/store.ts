@@ -1,4 +1,4 @@
-import { FastMCP } from "fastmcp";
+import { FastMCP, requireAuth } from "fastmcp";
 import { z } from "zod";
 import { join, resolve, relative } from "node:path";
 import { readFile, writeFile, rm, readdir, stat, mkdir } from "node:fs/promises";
@@ -7,7 +7,6 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
   const storeRoot = join(dataDir, "store");
 
   function safePath(project: string, filePath: string): string {
-    // Reject dangerous patterns
     if (project.includes("..") || project.includes("/") || project.includes("\\")) {
       throw new Error(`Invalid project name: ${project}`);
     }
@@ -21,6 +20,7 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
 
   server.addTool({
     name: "store_write",
+    canAccess: requireAuth,
     description: "Save a file to local project store on server.",
     parameters: z.object({
       project: z.string().describe("Project identifier"),
@@ -37,6 +37,7 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
 
   server.addTool({
     name: "store_read",
+    canAccess: requireAuth,
     description: "Read a file from local project store.",
     parameters: z.object({
       project: z.string().describe("Project identifier"),
@@ -51,6 +52,7 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
 
   server.addTool({
     name: "store_list",
+    canAccess: requireAuth,
     description: "List files in local project store.",
     parameters: z.object({
       project: z.string().describe("Project identifier"),
@@ -66,6 +68,7 @@ export function registerStoreTools(server: FastMCP, dataDir: string) {
 
   server.addTool({
     name: "store_delete",
+    canAccess: requireAuth,
     description: "Delete a file from local project store.",
     parameters: z.object({
       project: z.string().describe("Project identifier"),
