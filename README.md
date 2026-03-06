@@ -33,7 +33,7 @@ PRs, code search, and file operations. This server fills the gaps:
 ```
 Claude.ai / Claude Desktop / Claude Code CLI
     │
-    │  OAuth 2.1 (GitHub via FastMCP proxy + DCR)
+    │  OAuth 2.1 (GitHub via FastMCP proxy)
     ▼
 FastMCP Server (TypeScript, port 62100)
     │
@@ -53,7 +53,7 @@ FastMCP Server (TypeScript, port 62100)
 
 - Node.js 20+
 - GitHub OAuth App ([create one](https://github.com/settings/developers))
-  - Callback URL: `https://your-host/auth/callback`
+  - Callback URL: `https://claude.ai/api/mcp/auth_callback` (for Claude.ai)
 
 ### Manual Install
 
@@ -73,9 +73,12 @@ node --env-file=.env dist/server.js
 
 1. Settings → Connectors → **Add custom connector**
 2. URL: `https://your-host/mcp`
-3. Authenticate with GitHub when prompted
+3. Expand **Advanced settings**
+4. Paste your GitHub OAuth App **Client ID** and **Client Secret**
+5. Authenticate with GitHub when prompted
 
-### Connect Claude Desktop
+> **Note:** DCR does not work reliably with Claude.ai. You must provide static
+> credentials via Advanced settings. See [docs/oauth.md](docs/oauth.md) for details.
 
 Add to `claude_desktop_config.json`:
 ```json

@@ -4,7 +4,7 @@
 
 - Uberspace account (e.g. `manu.uber.space`)
 - GitHub OAuth App registered at https://github.com/settings/developers
-  - Callback URL: `https://manu.uber.space/auth/callback`
+  - Callback URL: `https://claude.ai/api/mcp/auth_callback`
   - No special scopes needed in the app config (server requests `repo` at runtime)
 - Node.js 20+ (`uberspace tools version use node 20`)
 
@@ -73,9 +73,10 @@ curl -s https://manu.uber.space/.well-known/oauth-protected-resource
 
 1. Settings → Connectors → **Add custom connector**
 2. URL: `https://manu.uber.space/mcp`
-3. Leave OAuth Client ID/Secret empty (DCR handles registration automatically)
-4. Authenticate with GitHub when prompted
-5. Start new conversation — tools should be available
+3. Expand **Advanced settings**
+4. Paste your GitHub OAuth App **Client ID** and **Client Secret**
+5. Authenticate with GitHub when prompted
+6. Start new conversation — tools should be available
 
 ## Update
 

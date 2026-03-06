@@ -39,12 +39,23 @@ GitHub API (via Octokit)
 
 ### DCR (Dynamic Client Registration)
 
-FastMCP implements DCR at `/register`. When an MCP client (Claude.ai, Claude Desktop,
-etc.) connects, it POST to `/register` with its callback URL. FastMCP responds with
-your GitHub OAuth App `client_id` — the client then drives a standard OAuth 2.0 flow.
+FastMCP implements DCR at `/register`. In theory, MCP clients POST to `/register`
+with their callback URL and get back the `client_id` to drive OAuth automatically.
 
-This means **all MCP clients work through a single GitHub OAuth App** with no
-per-client configuration needed.
+**In practice, DCR does not work reliably with Claude.ai.** Claude.ai's DCR
+implementation has known issues that cause the OAuth flow to fail silently or loop.
+
+### Static Credentials (Known Working Path)
+
+The reliable approach is to **bypass DCR entirely** using Claude.ai's Advanced
+settings:
+
+1. Pre-register `https://claude.ai/api/mcp/auth_callback` as an authorized
+   callback URL in your GitHub OAuth App
+2. Give users the `client_id` and `client_secret` to paste into the connector
+3. Claude.ai uses these directly — no DCR round-trip needed
+
+See [Connecting Claude.ai](#connecting-claudeai) below for step-by-step instructions.
 
 ## GitHub OAuth App Setup
 
@@ -52,12 +63,28 @@ per-client configuration needed.
 2. Fill in:
    - **Application name:** `mkbc-mcp`
    - **Homepage URL:** `https://your-host.uber.space`
-   - **Authorization callback URL:** `https://your-host.uber.space/auth/callback`
+   - **Authorization callback URL:** `https://claude.ai/api/mcp/auth_callback`
 3. Copy **Client ID** and generate a **Client Secret**
 4. Add both to `.env`
 
-> The callback URL points to **your server** (`/auth/callback`), not to Claude.ai.
-> FastMCP handles the redirect chain between GitHub, itself, and the MCP client.
+> The callback URL points to **Claude.ai** (`https://claude.ai/api/mcp/auth_callback`),
+> not to your server. Claude.ai handles the final OAuth redirect, then passes the
+> token upstream to FastMCP.
+
+### Multiple Callback URLs
+
+GitHub OAuth Apps support only **one** callback URL. If you also need server-side
+callbacks (e.g. for Claude Desktop or CLI), register a second OAuth App with
+callback URL `https://your-host.uber.space/auth/callback`.
+
+## Connecting Claude.ai
+
+1. Settings → Connectors → **Add custom connector**
+2. URL: `https://your-host.uber.space/mcp`
+3. Expand **Advanced settings**
+4. Paste your GitHub OAuth App **Client ID** and **Client Secret**
+5. Authenticate with GitHub when prompted
+6. Start new conversation — tools should be available
 
 ## OAuth Scopes
 
@@ -87,7 +114,7 @@ const octokit = new Octokit({ auth: accessToken });
 
 | Layer | Mechanism |
 |-------|-----------|
-| Authentication | GitHub OAuth 2.1 via FastMCP GitHubProvider + DCR |
+| Authentication | GitHub OAuth 2.1 via FastMCP GitHubProvider (static credentials, not DCR) |
 | Token isolation | FastMCP issues JWTs; upstream GitHub tokens encrypted on disk |
 | Authorization | `canAccess: requireAuth` on all tools |
 | Transport | HTTPS only (Uberspace auto-TLS via Let's Encrypt) |
@@ -112,7 +139,8 @@ Two different `fastmcp` packages exist. This project uses the **TypeScript** one
 | Used by | **mkbc-mcp** (this project) | CLAUDEUSMCP (separate gateway) |
 | OAuth | `GitHubProvider` from `"fastmcp"` | `GitHubProvider` from `fastmcp.server.auth.providers.github` |
 | Token store | `DiskStore` from `"fastmcp/auth"` | In-memory (Redis via plugins) |
-| Known issues | Stable | DCR bugs with Claude.ai, 5-min timeout, secret exposure |
+| DCR with Claude.ai | Broken (use static credentials) | Broken (use static credentials) |
+| Known issues | Stable otherwise | 5-min timeout, secret exposure |
 
 ## Environment Variables
 
@@ -130,7 +158,10 @@ MCP_DATA_DIR=./mcp-data              # Default: ./mcp-data (stores tokens in /oa
 ## Troubleshooting
 
 ### OAuth flow fails / redirect error
-- Verify callback URL in GitHub OAuth App matches **exactly**: `https://your-host/auth/callback`
+- **Claude.ai:** Verify callback URL in GitHub OAuth App is **exactly**
+  `https://claude.ai/api/mcp/auth_callback` and that you pasted Client ID + Secret
+  in the connector's Advanced settings (DCR does not work)
+- **Other clients:** Verify callback URL matches `https://your-host/auth/callback`
 - Check `BASE_URL` env var matches the public URL
 - Test discovery: `curl -s https://your-host/.well-known/oauth-protected-resource`
 
