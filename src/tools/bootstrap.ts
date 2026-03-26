@@ -1,14 +1,12 @@
-import { FastMCP } from "fastmcp";
+import { FastMCP, requireAuth } from "fastmcp";
 import { z } from "zod";
 import { createOctokit } from "../lib/octokit.js";
 import { renderClaudeMd, renderReadme, renderGitignore, renderDecisions } from "../lib/templates.js";
 
-// TODO: Implement bootstrap tools
-// See docs/tools.md for the full design specification.
-
 export function registerBootstrapTools(server: FastMCP) {
   server.addTool({
     name: "gh_project_bootstrap",
+    canAccess: requireAuth,
     description:
       "Create a GitHub repo with structured CLAUDE.md scaffolding for " +
       "claude.ai chat -> Claude Code handoff. Uses Git Data API for " +
@@ -113,6 +111,7 @@ export function registerBootstrapTools(server: FastMCP) {
 
   server.addTool({
     name: "gh_project_add_context",
+    canAccess: requireAuth,
     description: "Append content to a specific section of an existing CLAUDE.md in a GitHub repo.",
     parameters: z.object({
       repo: z.string().describe("owner/name"),

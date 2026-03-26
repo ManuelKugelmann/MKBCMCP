@@ -1,6 +1,6 @@
 {
   "name": "mkbc-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Custom MCP server for project bootstrapping, regex grep, and local file storage",
   "main": "dist/server.js",
@@ -10,12 +10,12 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "fastmcp": "^0.1.0",
-    "octokit": "^4.0.0",
+    "fastmcp": "^3.33.0",
+    "octokit": "^5.0.5",
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "typescript": "^5.5.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0"
   }
 }

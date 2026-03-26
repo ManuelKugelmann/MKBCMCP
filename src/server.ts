@@ -1,5 +1,4 @@
-import { FastMCP } from "fastmcp";
-import { GitHubProvider } from "fastmcp/auth";
+import { FastMCP, GitHubProvider } from "fastmcp";
 import { DiskStore } from "fastmcp/auth";
 import { registerBootstrapTools } from "./tools/bootstrap.js";
 import { registerGrepTool } from "./tools/grep.js";
@@ -14,17 +13,15 @@ const auth = new GitHubProvider({
   baseUrl: BASE_URL,
   clientId: process.env.GITHUB_CLIENT_ID!,
   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-  scopes: ["repo", "read:user"],
-  // DiskStore for token persistence across restarts
+  scopes: ["repo"],
   tokenStorage: new DiskStore({
     directory: `${DATA_DIR}/oauth`,
-    cleanupIntervalMs: 60_000,
   }),
 });
 
 const server = new FastMCP({
   name: "mkbc-mcp",
-  version: "0.1.0",
+  version: "0.2.0",
   auth,
 });
 
